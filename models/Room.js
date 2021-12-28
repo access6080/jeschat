@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 const RoomSchema = mongoose.Schema({
     members: {
         type: [mongoose.ObjectId],
-        required: true
+        required: true,
+        unique: true
     },
 
     messages: {

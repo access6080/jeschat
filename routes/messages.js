@@ -3,7 +3,7 @@ import {createRoomController,  sendMessageController} from '../controllers/messa
 
 const router = Router();
 
-router.post('/createRoom', createRoomController);
-router.post('/sendMessage', sendMessageController);
+router.post('/create-room', createRoomController);
+router.post('/send-message', sendMessageController);
 
 export default router;

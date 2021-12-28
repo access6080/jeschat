@@ -10,7 +10,7 @@ export const createRoomController = async (req, res) => {
     try {
         const room = await Room.create({ members });
 
-        members.forEach((member) => {
+        members.forEach(async (member) => {
             const user = await User.findById(member);
 
             user.rooms.push(room._id);
@@ -19,7 +19,9 @@ export const createRoomController = async (req, res) => {
         res.status(200).json({ success: true, message: 'Room created successfully', data: room._id });
         
     } catch (error) {
-        console.log(error.message);
+        if (error.code === 11000)
+            res.status(401).json({message:"Room Already Exists"})
+        res.status(500).json({error: error.message})
     }
 };
 
@@ -42,10 +44,14 @@ export const sendMessageController = async (req, res) => {
         if (!messageRoom) return res.status(401).json({ message: "Invalid Room"})
         messageRoom.messages.push(message._id);
 
+        messageRoom.save();
+
         // Add Message to Sender message array
         const messageSender = await User.findById(sender);
         if (!messageSender) return res.status(401).json({ message: "Invalid Sender"})
         messageSender.messages.push(message._id);
+
+        messageSender.save();
 
         res.status(200).json({ success: true, message:"Message added successfully"})
 

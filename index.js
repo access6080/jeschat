@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import userRoutes from './routes/users.js'
+import chatRoutes from './routes/messages.js'
 
 const app = express();
 const server = http.createServer(app);
@@ -35,11 +36,11 @@ app.use(express.json());
 
 //routes
 app.use('/auth/', userRoutes);
+app.use('/chat/', chatRoutes);
 
 // Initailize Socket Connection
 io.on('connection', (socket) => {
     console.log("Conneccted");
-
 });
 
 app.listen(PORT, () => {
