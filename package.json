@@ -1,0 +1,32 @@
+{
+  "name": "jeschat",
+  "version": "1.0.0",
+  "description": "A Terminal Chat App",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/access6080/jeschat.git"
+  },
+  "keywords": [],
+  "author": "Jemak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/access6080/jeschat/issues"
+  },
+  "homepage": "https://github.com/access6080/jeschat#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.2",
+    "mongoose": "^6.1.4",
+    "socket.io": "^4.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
