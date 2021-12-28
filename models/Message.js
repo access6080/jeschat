@@ -19,6 +19,11 @@ const MessageSchema = mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now()
+    },
+
+    room: {
+        type: mongoose.ObjectId,
+        required: true
     }
 })
 

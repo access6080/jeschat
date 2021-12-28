@@ -9,7 +9,12 @@ import userRoutes from './routes/users.js'
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        methods: ["GET", "POST"]
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 const CONNECTION_URI = process.env.CONNECTION_URI;
@@ -30,6 +35,12 @@ app.use(express.json());
 
 //routes
 app.use('/auth/', userRoutes);
+
+// Initailize Socket Connection
+io.on('connection', (socket) => {
+    console.log("Conneccted");
+
+});
 
 app.listen(PORT, () => {
     console.log(`Server Running on Port ${PORT}`)

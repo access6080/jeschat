@@ -14,7 +14,7 @@ export const loginController = async (req, res, next) => {
 
         if (!isMatched) return res.status(401).json({ message: "Invalid Credentials" });
 
-        res.status(200).json({ success: true });
+        res.status(200).json({ success: true, data: user });
         
     } catch (error) {
         console.log(error.message);

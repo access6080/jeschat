@@ -2,22 +2,26 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
 const UserSchema = mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true
-    },
+  username: {
+    type: String,
+    required: true,
+    unique: true
+  },
 
-    password: {
-        type: String,
-        require: true,
-        minlength: 6,
-        select: false,
-    },
+  password: {
+    type: String,
+    require: true,
+    minlength: 6,
+    select: false,
+  },
 
-    messages: {
-        type: [mongoose.ObjectId]
-    }
+  messages: {
+    type: [mongoose.ObjectId]
+  },
+    
+  rooms: {
+    type: [mongoose.ObjectId]
+  }
 
 });
 
