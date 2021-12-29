@@ -40,9 +40,11 @@ app.use('/chat/', chatRoutes);
 
 // Initailize Socket Connection
 io.on('connection', (socket) => {
-    console.log("Conneccted");
+    socket.on('newMessage', (data) => {
+        io.emit('newChat', data)
+    })
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server Running on Port ${PORT}`)
 })
