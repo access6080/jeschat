@@ -3,16 +3,21 @@ import pkg from 'inquirer';
 import axios from 'axios';
 import ora from 'ora';
 
-import { writeData, retrieveData } from './utils/persistUser.js';
 import { main } from './chat-ui.js';
 
-// const socket = io("http://localhost:3000")
-// socket.emit('hello', "I connected");
-const baseUrl = "http://localhost:3000";
 const { prompt } = pkg;
-const program = new Command();
 const spinner = ora();
-const user = retrieveData();
+const program = new Command();
+const baseUrl = "http://localhost:3000";
+
+const menuSchema = [
+    { 
+        type: "list",
+        name: "menu",
+        message: "Select An Option",
+        choices:["Login", "Sign Up"]
+    }
+]
 
 const loginSchema = [
     {
@@ -49,58 +54,58 @@ program
     .command("init")
     .alias("i")
     .description("Initialize The Chat Engine")
-    .action(() => main(1))
-
-
-program
-    .command("login")
-    .description("Login into chat service")
     .action(() => {
-        // prompt.start()
-        prompt(loginSchema)
-            .then(async (answers) => {
-                try {
-                    spinner.start('Authentication credentials...');
-                    const { data } = await axios.post(`${baseUrl}/auth/login`, answers);
-                    spinner.succeed(`Login successfully!`);
+        prompt(menuSchema)
+            .then((answers) => {
+                if (answers.menu === "Login") {
+                    prompt(loginSchema)
+                        .then(async (answers) => {
+                            try {
+                                spinner.start('Authentication credentials...');
+                                const { data } = await axios.post(`${baseUrl}/auth/login`, answers);
+                                spinner.succeed(`Login successfully!`);
+                            
+                                if (data.success === true) {
+                                    const user = data.response;
+
+                                    // Client Side UI
+                                    spinner.start("Connecting to Chat Engine");
+                                    setTimeout(() => {
+                                        spinner.succeed("Connecction Established")
+                                        main(user);
+                                    }, 1500);
+                                }
+
+                            } catch (error) {
+                                console.log(error.message);
+                            }
+                        })
+                }
+                else if (answers.menu === "Sign Up") {
+                    prompt(signupSchema)
+                        .then(async (answers) => {
+                            try {
+                                spinner.start('Authentication credentials...');
+                                const { data } = await axios.post(`${baseUrl}/auth/signup`, answers);
+                                spinner.succeed(`Sign Up successfully!`);
+                            
+                                if (data.success === true) {
+                                    const user = data.response;
                 
-                    if (data.success === true) {
-                        const user = data.response; 
-                        writeData(user._id);
-                    }
+                                    // Client Side UI
+                                    spinner.start("Connecting to Chat Engine");
+                                    setTimeout(() => {
+                                        spinner.succeed("Connecction Established")
+                                        main(user);
+                                    }, 1500);
+                                }
 
-                    // Client Side UI
-                    main(user);
-
-                } catch (error) {
-                    console.log(error.message);
+                            } catch (error) {
+                                console.log(error.message);
+                            }
+                        })
                 }
             })
     })
-    
-program
-    .command("signup")
-    .description("Sign Up for chat service")
-    .action(() => {
-        // prompt.start()
-        prompt(signupSchema)
-            .then(async (answers) => {
-                try {
-                    spinner.start('Authentication credentials...');
-                    const { data } = await axios.post(`${baseUrl}/auth/signup`, answers);
-                    spinner.succeed(`Sign Up successfully!`);
-                
-                    if (data.success === true) {
-                        const user = data.response; 
-                        writeData(user._id);
-                    }
 
-                    // Client Side UI
-                    main(user);
-
-                } catch (error) {
-                    console.log(error.message);
-                }
-            })
-    })
 program.parse()

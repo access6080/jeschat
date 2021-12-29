@@ -2,28 +2,15 @@ import { io } from 'socket.io-client';
 import blessed from 'neo-blessed';
 import ora from 'ora';
 import axios from 'axios';
-import { retrieveData } from './utils/persistUser.js';
+
 
 const baseUrl = "http://localhost:3000";
 const spinner = ora();
 const socket = io(baseUrl);
 
 export const main = async (user) => {
+    process.stdin.removeAllListeners('data');
     try {
-        if (!user) {
-            const id = retrieveData();
-            if (id.length <= 0) return console.log(
-                `\n
-                Not Authenticated!!\n
-                Please Run Jeschat login to login\n
-                Or Run Jeschat signup to Sign Up.
-                `
-            );
-
-            const { data } = await axios.post(`${baseUrl}/auth`, id);
-            user = data.response;
-        }
-
         const screen = blessed.screen({
             smartCSR: true,
             title: 'Jeschat: A Terminal Chat App',
@@ -31,7 +18,7 @@ export const main = async (user) => {
 
         const messageList = blessed.list({
             align: 'left',
-            mouse: true,
+            mouse: false,
             keys: true,
             width: '100%',
             height: '90%',
@@ -43,6 +30,7 @@ export const main = async (user) => {
             },
             items: [],
         });
+
 
         // Append our box to the screen.
         const input = blessed.textarea({
@@ -66,8 +54,12 @@ export const main = async (user) => {
 
         input.key('enter', async function () {
             const message = this.getValue();
+            const payload = {
+                user: user,
+                message: message
+            };
             try {
-                socket.emit("newMessage", message);
+                if (payload.message.length > 0) socket.emit("newMessage", payload);
                 //TODO: Make A  post request to /send-message endpoint
             } catch (error) {
                 console.log(error.message);
@@ -89,14 +81,14 @@ export const main = async (user) => {
         screen.render();
 
         socket.on('newChat', (data) => {
-        messageList.addItem(`${data}`);
-        messageList.addItem("");
-        messageList.scrollTo(100);
-        screen.render();
+            messageList.addItem(`<${data.user.username}> ${data.message}`);
+            messageList.addItem("");
+            messageList.scrollTo(100);
+            screen.render(); 
         });
+
     } catch (error) {
-        spinner.fail();
-        console.log(error.message);
+        spinner.fail(error.message);
         process.exit(1);
     }
 }
