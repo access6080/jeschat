@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import pkg from 'inquirer';
 import axios from 'axios';
 import ora from 'ora';
+import chalk from 'chalk';
 
 import { main } from './chat-ui.js';
 
@@ -50,6 +51,23 @@ const signupSchema = [
     }
 ];
 
+const dashboardSchema = [
+    {
+        type: "list",
+        name: "chatMenu",
+        message: "Welcome to JesChat!",
+        choices: ["Start a New Conversation", "Previous Conversations"]
+    }
+]
+
+const searchSchema = [
+    {
+        type: "input",
+        name: "user",
+        message: "Recipient Username:",
+    }
+]
+
 program
     .command("init")
     .alias("i")
@@ -62,22 +80,53 @@ program
                         .then(async (answers) => {
                             try {
                                 spinner.start('Authentication credentials...');
-                                const { data } = await axios.post(`${baseUrl}/auth/login`, answers);
+                                const loginData = await axios.post(`${baseUrl}/auth/login`, answers);
                                 spinner.succeed(`Login successfully!`);
                             
-                                if (data.success === true) {
-                                    const user = data.response;
+                                if (loginData.data.success === true) {
+                                    const user = loginData.data.response;
+                                    
+                                    console.clear();
+                                    prompt(dashboardSchema)
+                                        .then((answers) => {
+                                            if (answers.chatMenu === "Start a New Conversation") {
+                                                prompt(searchSchema)
+                                                    .then(async (answers) => {
+                                                        try {
+                                                            const recipientData = await axios.post(`${baseUrl}/auth/`, { username: answers.user });
+                                                            const recipient = recipientData.data.response;
+                                                            console.log(recipient);
+                                                            try {
+                                                                spinner.start("Creating Chat...")
+                                                                const roomData = await axios.post(`${baseUrl}/chat/create-room`, { sender: user._id, recipient: recipient._id });
+                                                                spinner.succeed("Chat Created Successfully");
+
+                                                                const room = roomData.data.response;
+                                                                console.log(room);
+                                                            } catch (error) {
+                                                                spinner.fail(chalk.red('<rm> ' + error));
+                                                                process.exit(1);
+                                                            }
+                                                        } catch (error) {
+                                                            spinner.fail(chalk.red('<rt> ' + error.message));
+                                                            process.exit(1);
+                                                        }
+                                                    })
+                                            }
+                                        });
 
                                     // Client Side UI
-                                    spinner.start("Connecting to Chat Engine");
-                                    setTimeout(() => {
-                                        spinner.succeed("Connecction Established")
-                                        main(user);
-                                    }, 1500);
+                                    // spinner.start("Connecting to Chat Engine");
+                                    // setTimeout(() => {
+                                    //     spinner.succeed("Connecction Established")
+                                    //     main(user);
+                                    // }, 1500);
                                 }
 
                             } catch (error) {
-                                console.log(error.message);
+                                // console.log(error.message);
+                                spinner.fail('Login Unsuccessfully!');
+                                process.exit(1);
                             }
                         })
                 }

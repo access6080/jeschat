@@ -40,6 +40,7 @@ app.use('/chat/', chatRoutes);
 
 // Initailize Socket Connection
 io.on('connection', (socket) => {
+    // io.emit("newConnection", "Welcome To Jeschat!!!")
     socket.on('newMessage', (data) => {
         io.emit('newChat', data)
     })

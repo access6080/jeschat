@@ -3,25 +3,27 @@ import User from '../models/User.js';
 import Message from '../models/Message.js';
 
 export const createRoomController = async (req, res) => {
-    const { members } = req.body;
+    const { sender, recipient } = req.body;
 
-    if (!members) return res.status(400).json({ message: "Please Provide Members for a Room" });
-
+    if (!sender || !recipient) return res.status(400).json({ message: "Please Provide Members for a Room" });
+    const members = [sender, recipient]
+    
     try {
         const room = await Room.create({ members });
+        
+        const senderDoc = await User.findById(sender);
+        senderDoc.rooms.push(room._id);
+        senderDoc.save();
 
-        members.forEach(async (member) => {
-            const user = await User.findById(member);
+        const recipientDoc = await User.findById(recipient);
+        recipientDoc.rooms.push(room._id);
+        recipientDoc.save();
 
-            user.rooms.push(room._id);
-        })
-
-        res.status(200).json({ success: true, message: 'Room created successfully', data: room._id });
+        res.status(200).json({ success: true, message: 'Chat created successfully', response: room._id });
         
     } catch (error) {
-        if (error.code === 11000)
-            res.status(401).json({message:"Room Already Exists"})
-        res.status(500).json({error: error.message})
+        res.status(500).json({ message: error.message })
+        console.log(error.message);
     }
 };
 

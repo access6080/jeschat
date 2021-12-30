@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import blessed from 'neo-blessed';
 import ora from 'ora';
+import chalk from 'chalk';
 import axios from 'axios';
 
 
@@ -28,10 +29,10 @@ export const main = async (user) => {
                 ch: ' ',
                 inverse: true,
             },
-            items: [],
+            items: ["<<<<<<< Welcome To Jeschat!!! >>>>>>",""],
         });
 
-
+      
         // Append our box to the screen.
         const input = blessed.textarea({
             bottom: 0,
@@ -56,10 +57,10 @@ export const main = async (user) => {
             const message = this.getValue();
             const payload = {
                 user: user,
-                message: message
+                message: chalk.blue.bold(message)
             };
             try {
-                if (payload.message.length > 0) socket.emit("newMessage", payload);
+                socket.emit("newMessage", payload);
                 //TODO: Make A  post request to /send-message endpoint
             } catch (error) {
                 console.log(error.message);
@@ -80,8 +81,9 @@ export const main = async (user) => {
 
         screen.render();
 
+
         socket.on('newChat', (data) => {
-            messageList.addItem(`<${data.user.username}> ${data.message}`);
+            messageList.addItem(`${chalk.yellow(`<${data.user.username}>`)} ${data.message}`);
             messageList.addItem("");
             messageList.scrollTo(100);
             screen.render(); 

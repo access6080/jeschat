@@ -42,10 +42,12 @@ export const signupController = async (req, res, next) => {
     }
 };
 
-export const getUserController = (req, res) => {
-    const { id } = req.body;
+export const getUserController = async (req, res) => {
+    const { username } = req.body;
     try {
-        const user = User.findById(id);
+        const user = await User.findOne({ username: username});
+        if (!user) return res.status(401).json({ success: false, message: error.message });
+        
         res.status(200).json({success: true, response: user});
     } catch (error) {
         console.log(error.message);
