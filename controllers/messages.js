@@ -7,16 +7,27 @@ export const createRoomController = async (req, res) => {
 
     if (!sender || !recipient) return res.status(400).json({ message: "Please Provide Members for a Room" });
     const members = [sender, recipient]
+    const checkMembers = [recipient, sender]
     
     try {
+        // Check If Room already exists and return id
+        const senderCreated = await Room.findOne({ members });
+        if (senderCreated) return res.status(200).json({ success: 201, message: 'Room already exists', response: senderCreated._id })
+        
+        const recipientCreated = await Room.findOne({ checkMembers });
+        if (recipientCreated) return res.status(200).json({ success: 202, message: 'Room already exists', response: recipientCreated ._id })
+        
+
+
         const room = await Room.create({ members });
         
         const senderDoc = await User.findById(sender);
-        senderDoc.rooms.push(room._id);
+        const recipientDoc = await User.findById(recipient);
+
+        senderDoc.rooms.push(recipientDoc._id);
         senderDoc.save();
 
-        const recipientDoc = await User.findById(recipient);
-        recipientDoc.rooms.push(room._id);
+        recipientDoc.rooms.push(senderDoc._id);
         recipientDoc.save();
 
         res.status(200).json({ success: true, message: 'Chat created successfully', response: room._id });
@@ -59,5 +70,32 @@ export const sendMessageController = async (req, res) => {
 
     } catch (error) {
         console.log(error.message);
+    }
+}
+
+export const previousRoomsController = async (req, res) => {
+    const { id } = req.body;
+    
+    try {
+        const user = await User.findById(id);
+        if (!user) return res.status(401).json({ success: false, message: "User Not Found" });
+        
+        const rooms = user.rooms;
+
+        if (rooms.length === 0) {
+            return res.status(200).json({ success: 2, message: "You have no previous conversation(s)." });
+        }
+        
+        
+        rooms.forEach(async (room) => {
+            const prevCon = []
+            const prevUser = await User.findById(room);
+            prevCon.push(prevUser.username);
+            
+            res.status(200).json({ success: true, response: prevCon });
+        });
+        
+    } catch (error) {
+        console.log(error.message)
     }
 }

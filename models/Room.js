@@ -4,7 +4,6 @@ const RoomSchema = mongoose.Schema({
     members: {
         type: [mongoose.ObjectId],
         required: true,
-        unique: true
     },
 
     messages: {

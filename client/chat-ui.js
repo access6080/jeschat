@@ -9,7 +9,7 @@ const baseUrl = "http://localhost:3000";
 const spinner = ora();
 const socket = io(baseUrl);
 
-export const main = async (user) => {
+export const main = async (user, recipient, room) => {
     process.stdin.removeAllListeners('data');
     try {
         const screen = blessed.screen({

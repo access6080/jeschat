@@ -68,6 +68,8 @@ const searchSchema = [
     }
 ]
 
+
+
 program
     .command("init")
     .alias("i")
@@ -88,21 +90,37 @@ program
                                     
                                     console.clear();
                                     prompt(dashboardSchema)
-                                        .then((answers) => {
+                                        .then(async (answers) => {
                                             if (answers.chatMenu === "Start a New Conversation") {
                                                 prompt(searchSchema)
                                                     .then(async (answers) => {
                                                         try {
                                                             const recipientData = await axios.post(`${baseUrl}/auth/`, { username: answers.user });
                                                             const recipient = recipientData.data.response;
-                                                            console.log(recipient);
+
                                                             try {
                                                                 spinner.start("Creating Chat...")
                                                                 const roomData = await axios.post(`${baseUrl}/chat/create-room`, { sender: user._id, recipient: recipient._id });
-                                                                spinner.succeed("Chat Created Successfully");
+
+                                                                if (roomData.data.success === 2) {
+                                                                    spinner.warn(chalk.yellow.bgBlueBright("Chat Already Exists..."))
+                                                                    setTimeout(() => {
+                                                                        spinner.start("Fetching Chat Data");
+                                                                        spinner.succeed("Data Fetched Successfully");
+                                                                    },1000)
+                                                                } else {
+                                                                    spinner.succeed("Chat Created Successfully");
+                                                                }
 
                                                                 const room = roomData.data.response;
-                                                                console.log(room);
+
+                                                                // Client Side UI
+                                                                spinner.start("Connecting to Chat Engine");
+                                                                setTimeout(() => {
+                                                                    spinner.succeed("Connecction Established")
+                                                                    main(user, recipient, room);
+                                                                }, 1500);
+                                                                
                                                             } catch (error) {
                                                                 spinner.fail(chalk.red('<rm> ' + error));
                                                                 process.exit(1);
@@ -113,19 +131,64 @@ program
                                                         }
                                                     })
                                             }
-                                        });
+                                            else if (answers.chatMenu === "Previous Conversations") {
+                                                try {
+                                                    spinner.start("Retrieving Previous Conversations...");
+                                                    const prevData = await axios.post(`${baseUrl}/chat/prev`, { id: user._id });
+                                                    spinner.succeed("Previous Converations retrieved successfully")
 
-                                    // Client Side UI
-                                    // spinner.start("Connecting to Chat Engine");
-                                    // setTimeout(() => {
-                                    //     spinner.succeed("Connecction Established")
-                                    //     main(user);
-                                    // }, 1500);
+                                                    if (prevData.data.success === 2) {
+                                                        console.log(chalk.yellow.bold("You have no previous Conversations"));
+                                                        process.exit(1)
+                                                    }
+                                                    const previousChatSchema = [
+                                                        {
+                                                            type: "list",
+                                                            name: "chatPrev",
+                                                            message: "Choose a Conversation",
+                                                            choices: prevData.data.response
+                                                        }
+                                                    ];
+                                        
+                                                    prompt(previousChatSchema)
+                                                        .then(async (answers) => {
+                                                            try {
+                                                                const recipientData = await axios.post(`${baseUrl}/auth/`, { username: answers.chatPrev });
+                                                                const recipient = recipientData.data.response;
+                                                                setTimeout(async () => {
+                                                                    try {
+                                                                        spinner.start("Fetching Chat Data");
+                                                                        const roomData = await axios.post(`${baseUrl}/chat/create-room`, { sender: user._id, recipient: recipient._id })
+                                                                        const room = roomData.data.response; 
+                                                                        spinner.succeed("Data Fetched Successfully");
+
+                                                                        // Client Side UI
+                                                                        spinner.start("Connecting to Chat Engine");
+                                                                        setTimeout(() => {
+                                                                            spinner.succeed("Connecction Established")
+                                                                            main(user, recipient, room);
+                                                                        }, 1500);
+
+                                                                    } catch (error) {
+                                                                        console.log(error.message);
+                                                                    }
+                                                                }, 1000)                                                         
+                                                            } catch (error) {
+                                                                console.log(error.message);
+                                                            }
+                                                        })
+                                                    
+                                                } catch (error) {
+                                                    spinner.fail(error.message);
+                                                    process.exit(1);
+                                                }
+                                            }
+                                        });
                                 }
 
                             } catch (error) {
                                 // console.log(error.message);
-                                spinner.fail('Login Unsuccessfully!');
+                                spinner.fail('Login Unsuccessful!');
                                 process.exit(1);
                             }
                         })
@@ -135,18 +198,108 @@ program
                         .then(async (answers) => {
                             try {
                                 spinner.start('Authentication credentials...');
-                                const { data } = await axios.post(`${baseUrl}/auth/signup`, answers);
+                                const signUpData = await axios.post(`${baseUrl}/auth/signup`, answers);
                                 spinner.succeed(`Sign Up successfully!`);
                             
-                                if (data.success === true) {
-                                    const user = data.response;
-                
-                                    // Client Side UI
-                                    spinner.start("Connecting to Chat Engine");
-                                    setTimeout(() => {
-                                        spinner.succeed("Connecction Established")
-                                        main(user);
-                                    }, 1500);
+                                if (signUpData.data.success === true) {
+                                    const user = signUpData.data.response;
+                                    
+                                    console.clear();
+                                    prompt(dashboardSchema)
+                                        .then(async (answers) => {
+                                            if (answers.chatMenu === "Start a New Conversation") {
+                                                prompt(searchSchema)
+                                                    .then(async (answers) => {
+                                                        try {
+                                                            const recipientData = await axios.post(`${baseUrl}/auth/`, { username: answers.user });
+                                                            const recipient = recipientData.data.response;
+
+                                                            try {
+                                                                spinner.start("Creating Chat...")
+                                                                const roomData = await axios.post(`${baseUrl}/chat/create-room`, { sender: user._id, recipient: recipient._id });
+
+                                                                if (roomData.data.success === 2) {
+                                                                    spinner.warn(chalk.yellow.bgBlueBright("Chat Already Exists..."))
+                                                                    setTimeout(() => {
+                                                                        spinner.start("Fetching Chat Data");
+                                                                        spinner.succeed("Data Fetched Successfully");
+                                                                    },1000)
+                                                                } else {
+                                                                    spinner.succeed("Chat Created Successfully");
+                                                                }
+
+                                                                const room = roomData.data.response;
+
+                                                                // Client Side UI
+                                                                spinner.start("Connecting to Chat Engine");
+                                                                setTimeout(() => {
+                                                                    spinner.succeed("Connecction Established")
+                                                                    main(user, recipient, room);
+                                                                }, 1500);
+                                                                
+                                                            } catch (error) {
+                                                                spinner.fail(chalk.red('<rm> ' + error));
+                                                                process.exit(1);
+                                                            }
+                                                        } catch (error) {
+                                                            spinner.fail(chalk.red('<rt> ' + error.message));
+                                                            process.exit(1);
+                                                        }
+                                                    })
+                                            }
+                                            else if (answers.chatMenu === "Previous Conversations") {
+                                                try {
+                                                    spinner.start("Retrieving Previous Conversations...");
+                                                    const prevData = await axios.post(`${baseUrl}/chat/prev`, { id: user._id });
+                                                    spinner.succeed("Previous Converations retrieved successfully")
+
+                                                    if (prevData.data.success === 2) {
+                                                        console.log(chalk.yellow.bold(prevData.data.message));
+                                                        process.exit(1)
+                                                    }
+                                                    const previousChatSchema = [
+                                                        {
+                                                            type: "list",
+                                                            name: "chatPrev",
+                                                            message: "Choose a Conversation",
+                                                            choices: prevData.data.response
+                                                        }
+                                                    ];
+                                        
+                                                    prompt(previousChatSchema)
+                                                        .then(async (answers) => {
+                                                            try {
+                                                                const recipientData = await axios.post(`${baseUrl}/auth/`, { username: answers.chatPrev });
+                                                                const recipient = recipientData.data.response;
+                                                                setTimeout(async () => {
+                                                                    try {
+                                                                        spinner.start("Fetching Chat Data");
+                                                                        const roomData = await axios.post(`${baseUrl}/chat/create-room`, { sender: user._id, recipient: recipient._id })
+                                                                        const room = roomData.data.response; 
+                                                                        spinner.succeed("Data Fetched Successfully");
+
+                                                                        // Client Side UI
+                                                                        spinner.start("Connecting to Chat Engine");
+                                                                        setTimeout(() => {
+                                                                            spinner.succeed("Connecction Established")
+                                                                            main(user, recipient, room);
+                                                                        }, 1500);
+
+                                                                    } catch (error) {
+                                                                        console.log(error.message);
+                                                                    }
+                                                                }, 1000)                                                         
+                                                            } catch (error) {
+                                                                console.log(error.message);
+                                                            }
+                                                        })
+                                                    
+                                                } catch (error) {
+                                                    spinner.fail(error.message);
+                                                    process.exit(1);
+                                                }
+                                            }
+                                        });
                                 }
 
                             } catch (error) {
