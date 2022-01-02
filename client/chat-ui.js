@@ -10,6 +10,8 @@ const spinner = ora();
 const socket = io(baseUrl);
 
 export const main = async (user, recipient, room) => {
+    socket.emit('joinChat', {username:user.username, room});
+
     process.stdin.removeAllListeners('data');
     try {
         const screen = blessed.screen({
@@ -38,6 +40,7 @@ export const main = async (user, recipient, room) => {
             bottom: 0,
             height: '10%',
             inputOnFocus: true,
+            keys: true,
             padding: {
                 top: 1,
                 left: 2,
@@ -55,9 +58,9 @@ export const main = async (user, recipient, room) => {
 
         input.key('enter', async function () {
             const message = this.getValue();
+            displayMessage(messageList, message, screen);
             const payload = {
-                user: user,
-                message: chalk.blue.bold(message)
+                message: chalk.blue.bold(message),
             };
             try {
                 socket.emit("newMessage", payload);
@@ -83,7 +86,7 @@ export const main = async (user, recipient, room) => {
 
 
         socket.on('newChat', (data) => {
-            messageList.addItem(`${chalk.yellow(`<${data.user.username}>`)} ${data.message}`);
+            messageList.addItem(`${chalk.yellow(`<${data.username}>`)} ${data.message}`);
             messageList.addItem("");
             messageList.scrollTo(100);
             screen.render(); 
@@ -93,4 +96,11 @@ export const main = async (user, recipient, room) => {
         spinner.fail(error.message);
         process.exit(1);
     }
+}
+
+const displayMessage = (messageList, message, screen) => {
+    messageList.addItem(chalk.yellow('<you> ') + message);
+    messageList.addItem("");
+    messageList.scrollTo(100);
+    screen.render(); 
 }

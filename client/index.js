@@ -158,9 +158,11 @@ program
                                                                 setTimeout(async () => {
                                                                     try {
                                                                         spinner.start("Fetching Chat Data");
-                                                                        const roomData = await axios.post(`${baseUrl}/chat/create-room`, { sender: user._id, recipient: recipient._id })
+                                                                        const roomData = await axios.post(`${baseUrl}/chat/create-room`, { sender: user._id, recipient: recipient._id });
                                                                         const room = roomData.data.response; 
+                                                                        
                                                                         spinner.succeed("Data Fetched Successfully");
+                                                                        
 
                                                                         // Client Side UI
                                                                         spinner.start("Connecting to Chat Engine");

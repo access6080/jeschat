@@ -5,8 +5,11 @@ import mongoose from "mongoose";
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { userJoin, getCurrentUser, userLeave } from './utils/users.js';
+
 import userRoutes from './routes/users.js'
 import chatRoutes from './routes/messages.js'
+
 
 const app = express();
 const server = http.createServer(app);
@@ -40,10 +43,27 @@ app.use('/chat/', chatRoutes);
 
 // Initailize Socket Connection
 io.on('connection', (socket) => {
-    // io.emit("newConnection", "Welcome To Jeschat!!!")
-    socket.on('newMessage', (data) => {
-        io.emit('newChat', data)
+    socket.on('joinChat', ({ username, room }) => {
+        const user = userJoin(socket.id, username, room);
+        socket.join(user.room);
+
+        socket.broadcast.to(user.room).emit('newChat',{username: 'ADMIN', message:`${user.username} has joined the chat`})
+
     })
+
+    socket.on('newMessage', (data) => {
+        const user = getCurrentUser(socket.id);
+        socket.broadcast.to(user.room).emit('newChat', {username: user.username, message: data.message})
+    })
+
+    socket.on('disconnect', () => {
+        const user = userLeave(socket.id);
+
+        if (user) {
+            io.to(user.room).emit('newChat',{username: 'ADMIN', message: `${user.username} has left the chat`});
+        }
+    })
+
 });
 
 server.listen(PORT, () => {
