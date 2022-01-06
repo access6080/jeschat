@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { loginController, signupController, getUserController } from '../controllers/users.js';  
+import { loginController, signupController, getUserController, refreshTokenController } from '../controllers/users.js';  
 
 const router = Router();
 
@@ -7,5 +7,6 @@ const router = Router();
 router.post('/', getUserController)
 router.post('/signup', signupController);
 router.post('/login', loginController);
+router.get('/refresh-token', refreshTokenController);
 
 export default router;

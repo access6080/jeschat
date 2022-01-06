@@ -1,4 +1,7 @@
 import express from "express";
+import cookieParser from 'cookie-parser';
+import cors from 'cors'
+
 import http from "http";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
@@ -12,6 +15,9 @@ import chatRoutes from './routes/messages.js'
 
 
 const app = express();
+app.use(cookieParser());
+app.use(cors());
+
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
@@ -20,7 +26,7 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const CONNECTION_URI = process.env.CONNECTION_URI;
 
 // Initialize Database
