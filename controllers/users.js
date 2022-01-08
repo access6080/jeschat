@@ -23,7 +23,7 @@ export const loginController = async (req, res, next) => {
 };
 
 export const signupController = async (req, res, next) => {
-    const { username, password, confirmPassword } = req.body;
+    const { username, password, confirmPassword, avatar } = req.body;
 
     if (!username || !password || !confirmPassword) return res.status(400).json({ success: false, message: "Please Provide Sign Up Details" });
 
@@ -33,7 +33,8 @@ export const signupController = async (req, res, next) => {
         // Create a new user
         const user = await  User.create({
             username,
-            password
+            password,
+            avatar
         });
 
         sendToken(user, 200, res);
