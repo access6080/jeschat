@@ -18,7 +18,7 @@ export const loginController = async (req, res, next) => {
         sendToken(user, 200, res);
         
     } catch (error) {
-        console.log(error.message);
+        console.log(error);
     }
 };
 
@@ -58,7 +58,7 @@ export const getUserController = async (req, res) => {
 export const refreshTokenController = async (req, res) => {
     const { jestok } = req.cookies;
 
-    if (!jestok) return res.status(400).json({ success: false, message: "Please Login or Sign Up"})
+    if (!jestok) return res.status(200).json({ success: false, message: "Please Login or Sign Up"})
 
     const decoded = jwt.decode(jestok, process.env.JWT_REFRESH_SECRET);
 
@@ -66,12 +66,27 @@ export const refreshTokenController = async (req, res) => {
         const user = await User.findById(decoded.id);
 
         if (!user) return res.status(404).json({ success: false });
-        console.log(user.username);
         
         sendAccessToken(user, 200, res);
 
     } catch (error) {
         console.log(error.message)
+    }
+}
+
+export const avatarController = async (req, res) => {
+    const { id, avatar } = req.body;
+
+    try {
+        const user = await User.findById(id);
+
+        if (!user) return res.status(404).json({ success: false });
+        user.avatar = avatar;
+        user.save();
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.log(error.message);
     }
 }
 
@@ -84,10 +99,10 @@ const sendToken = (user, statusCode, res) => {
             httpOnly: true,
             expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3)
         })
-        .json({ sucess: true, token });
+        .json({ sucess: true, user:user.username, token});
 };
 
 const sendAccessToken = (user, statusCode, res) => {
   const token = user.getAccessJwtToken();
-  res.status(statusCode).json({ sucess: true, token });
+  res.status(statusCode).json({ sucess: true, user:user.username, token});
 };

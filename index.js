@@ -16,7 +16,11 @@ import chatRoutes from './routes/messages.js'
 
 const app = express();
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials:true,       
+    optionSuccessStatus:200
+}));
 
 const server = http.createServer(app);
 const io = new Server(server, {

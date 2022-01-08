@@ -22,6 +22,10 @@ const UserSchema = mongoose.Schema({
     
   rooms: {
     type: [mongoose.ObjectId]
+  },
+
+  avatar: {
+    type: Object,
   }
 
 });
