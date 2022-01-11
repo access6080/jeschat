@@ -4,7 +4,8 @@ import {
     signupController,
     getUserController,
     refreshTokenController,
-    avatarController
+    avatarController,
+    logoutController
 } from '../controllers/users.js';  
 
 const router = Router();
@@ -13,6 +14,7 @@ const router = Router();
 router.post('/user/:username', getUserController)
 router.post('/signup', signupController);
 router.post('/login', loginController);
+router.get('/logout', logoutController);
 router.get('/refresh-token', refreshTokenController);
 router.patch('/avatar', avatarController);
 

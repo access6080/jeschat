@@ -44,6 +44,16 @@ export const signupController = async (req, res, next) => {
     }
 };
 
+export const logoutController = (req, res) => {
+    res
+        .status(200)
+        .cookie('jestok', 'logout', {
+            httpOnly: true,
+            expires: new Date(Date.now())
+        })
+        .end();
+};
+
 export const getUserController = async (req, res) => {
     const { username } = req.body;
     try {

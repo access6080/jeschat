@@ -24,6 +24,11 @@ const MessageSchema = mongoose.Schema({
     room: {
         type: mongoose.ObjectId,
         required: true
+    },
+
+    isOpen: {
+        type: Boolean,
+        default: false
     }
 })
 
