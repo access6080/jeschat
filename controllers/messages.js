@@ -75,12 +75,9 @@ export const sendMessageController = async (req, res) => {
 }
 
 export const previousRoomsController = async (req, res) => {
-    const { id } = req.body;
-    
+    const user = req.user;
+ 
     try {
-        const user = await User.findById(id);
-        if (!user) return res.status(401).json({ success: false, message: "User Not Found" });
-        
         const rooms = user.rooms;
 
         if (rooms.length === 0) {
