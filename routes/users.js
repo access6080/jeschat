@@ -5,7 +5,8 @@ import {
     getUserController,
     refreshTokenController,
     avatarController,
-    logoutController
+    logoutController,
+    searchController
 } from '../controllers/users.js';  
 
 const router = Router();
@@ -16,6 +17,7 @@ router.post('/signup', signupController);
 router.post('/login', loginController);
 router.get('/logout', logoutController);
 router.get('/refresh-token', refreshTokenController);
+router.post('/search', searchController)
 router.patch('/avatar', avatarController);
 
 export default router;

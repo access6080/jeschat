@@ -101,6 +101,28 @@ export const avatarController = async (req, res) => {
     }
 }
 
+export const searchController = async (req, res) => {
+    const { query } = req.query;
+
+    try {
+        const usersList = await User.find({ username: { $regex: String(query.toLowerCase()) } })
+        
+        if (!usersList || usersList.length === 0) return res.status(400).send({ error: "No task was found" })
+        
+        const userObj = usersList.map((user) => {
+            return {
+                id: user._id,
+                username: user.username, 
+                avatar: user.avatar
+            }
+        })
+
+        res.status(200).json({ success: true, response: userObj });
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
 const sendToken = (user, statusCode, res) => {
     const token = user.getAccessJwtToken();
     const refrshToken  = user.getRefreshJwtToken();
