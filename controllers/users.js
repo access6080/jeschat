@@ -55,9 +55,10 @@ export const logoutController = (req, res) => {
 };
 
 export const getUserController = async (req, res) => {
-    const { username } = req.body;
+    const { name } = req.params;
+    
     try {
-        const user = await User.findOne({ username: username});
+        const user = await User.findOne({ username: name });
         if (!user) return res.status(401).json({ success: false, message: error.message });
         
         res.status(200).json({success: true, response: user});

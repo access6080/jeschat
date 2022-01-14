@@ -3,14 +3,15 @@ import User from '../models/User.js';
 import Message from '../models/Message.js';
 
 export const createRoomController = async (req, res) => {
-    const { sender, recipient } = req.body;
+    const recipient = req.body.data;
+    const sender  = req.user._id;
 
     if (!sender || !recipient) return res.status(400).json({ message: "Please Provide Members for a Room" });
     const members = [sender, recipient]
     const checkMembers = [recipient, sender]
     
     try {
-        // Check If Room already exists and return id
+        // // Check If Room already exists and return id
         const senderCreated = await Room.find({ members });
         if (senderCreated.length) return res.status(200).json({ success: 201, message: 'Room already exists', response: senderCreated[0]._id })
         
@@ -20,7 +21,7 @@ export const createRoomController = async (req, res) => {
 
         const room = await Room.create({ members });
         
-        const senderDoc = await User.findById(sender);
+        const senderDoc = req.user;
         const recipientDoc = await User.findById(recipient);
 
         senderDoc.rooms.push(recipientDoc._id);
@@ -85,15 +86,18 @@ export const previousRoomsController = async (req, res) => {
         }
         
         
-        rooms.forEach(async (room) => {
-            const prevCon = []
+        const prevCon = rooms.map(async (room) => {
             const prevUser = await User.findById(room);
-            prevCon.push(prevUser.username);
-            
-            res.status(200).json({ success: true, response: prevCon });
+            return {
+                id: prevUser._id,
+                username: prevUser.username,
+                avatar: prevUser.avatar
+            }
         });
+
+        Promise.all(prevCon).then(result => res.status(200).json({ success: true, response: result }));
         
     } catch (error) {
-        console.log(error.message)
+        res.status(500).json({ error: error.message });
     }
 }

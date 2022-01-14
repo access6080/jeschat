@@ -12,7 +12,7 @@ import {
 const router = Router();
 
 //Sign Up
-router.post('/user/:username', getUserController)
+router.get('/user/:name', getUserController)
 router.post('/signup', signupController);
 router.post('/login', loginController);
 router.get('/logout', logoutController);
