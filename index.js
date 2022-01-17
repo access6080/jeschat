@@ -9,6 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { userJoin, getCurrentUser, userLeave } from './utils/users.js';
+import { capitalize } from "./utils/Text/index.js";
 
 import userRoutes from './routes/users.js'
 import chatRoutes from './routes/messages.js'
@@ -56,21 +57,20 @@ io.on('connection', (socket) => {
     socket.on('joinChat', ({ username, room }) => {
         const user = userJoin(socket.id, username, room);
         socket.join(user.room);
-
-        socket.broadcast.to(user.room).emit('newChat',{username: 'ADMIN', message:`${user.username} has joined the chat`})
+        socket.broadcast.to(user.room).emit('newChat', {username: 'ADMIN', message:`${capitalize(user.username)} has joined the chat`})
 
     })
 
     socket.on('newMessage', (data) => {
         const user = getCurrentUser(socket.id);
-        socket.broadcast.to(user.room).emit('newChat', {username: user.username, message: data.message})
+        io.to(user.room).emit('newChat', {username: user.username, message: data.message})
     })
 
     socket.on('disconnect', () => {
         const user = userLeave(socket.id);
 
         if (user) {
-            io.to(user.room).emit('newChat',{username: 'ADMIN', message: `${user.username} has left the chat`});
+            io.to(user.room).emit('newChat',{username: 'ADMIN', message: `${capitalize(user.username)} has left the chat`});
         }
     })
 
