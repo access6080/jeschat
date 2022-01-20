@@ -12,11 +12,25 @@ export const createRoomController = async (req, res) => {
     
     try {
         // Check If Room already exists and return id
-        const senderCreated = await Room.find({ members });
-        if (senderCreated.length) return res.status(200).json({ success: 201, message: 'Room already exists', response: {id: senderCreated[0]._id} })
+        const senderCreated = await Room.findOne({ members });
+        if (senderCreated !== null) {
+            const recipientData = await User.findById(senderCreated.members[1]) 
+            return res.status(200).json({
+                success: 201,
+                message: 'Room already exists',
+                response: { id: recipientData._id, username: recipientData.username }
+            })
+        }       
         
-        const recipientCreated = await Room.find({ members: checkMembers });
-        if (recipientCreated.length) return res.status(200).json({ success: 202, message: 'Room already exists', response: {id: recipientCreated[0]._id} })
+        const recipientCreated = await Room.findOne({ members: checkMembers });
+        if (recipientCreated !== null) {
+            const recipientData = await User.findById(recipientCreated.members[0])
+            return res.status(200).json({
+                success: 202,
+                message: 'Room already exists',
+                response: { id: recipientData._id, username: recipientData.username }
+            })
+        }
         
 
         const room = await Room.create({ members });
@@ -24,15 +38,17 @@ export const createRoomController = async (req, res) => {
         const senderDoc = req.user;
         const recipientDoc = await User.findById(recipient);
 
-        senderDoc.rooms.push(recipientDoc._id);
+        senderDoc.rooms.push(room._id);
+        senderDoc.friends.push(recipientDoc._id)
         senderDoc.save();
-
-        recipientDoc.rooms.push(senderDoc._id);
+        
+        recipientDoc.rooms.push(room._id);
+        recipientDoc.friends.push(senderDoc._id)
         recipientDoc.save();
 
         res.status(200).json({
             success: true, message: 'Chat created successfully', response: {
-                room: room._id, username: recipientDoc._id
+                room: room._id, username: recipientDoc.username
             }
         });
 
@@ -45,32 +61,39 @@ export const createRoomController = async (req, res) => {
 };
 
 export const sendMessageController = async (req, res) => {
-    const { text, room, sender, recipient } = req.body;
+    const sender = req.user;
+    const { text, room, recipient } = req.body;
 
-    if (!text || !room || !sender || !recipient) return res.status(400).json({ message: "Please Provide A Sender, A Recipient, A Room and A Text Message" });
+    if (!text || !room  || !recipient) return res.status(400).json({ message: "Please Provide A Sender, A Recipient, A Room and A Text Message" });
 
     try {
+        const messageRecipient = await User.findOne({ username: recipient });
+        if (!messageRecipient) return res.status(401).json({ message: "Invalid recipient" });
+
         // Create a Message
         const message = await Message.create({
-            sender,
-            recipient,
+            sender: sender._id,
+            recipient: messageRecipient._id,
             text,
             room
         });
 
         // Add Message to Room message array
-        const messageRoom = await Room.findById(room);
+        const messageRoom = await Room.findOne({ room });
+        // console.log(messageRoom)
         if (!messageRoom) return res.status(401).json({ message: "Invalid Room"})
         messageRoom.messages.push(message._id);
 
         messageRoom.save();
 
         // Add Message to Sender message array
-        const messageSender = await User.findById(sender);
-        if (!messageSender) return res.status(401).json({ message: "Invalid Sender"})
-        messageSender.messages.push(message._id);
+        sender.messages.push(message._id);
+        sender.save();
 
-        messageSender.save();
+        // Add Message to recipient array
+        messageRecipient.receivedMessages.push(message._id)
+
+        messageRecipient.save();
 
         res.status(200).json({ success: true, message:"Message added successfully"})
 
@@ -83,15 +106,15 @@ export const previousRoomsController = async (req, res) => {
     const user = req.user;
  
     try {
-        const rooms = user.rooms;
+        const friends = user.friends;
 
-        if (rooms.length === 0) {
+        if (friends.length === 0) {
             return res.status(200).json({ success: 2, message: "You have no previous conversation(s)." });
         }
         
         
-        const prevCon = rooms.map(async (room) => {
-            const prevUser = await User.findById(room);
+        const prevCon = friends.map(async (friend) => {
+            const prevUser = await User.findById(friend);
             return {
                 id: prevUser._id,
                 username: prevUser.username,
@@ -101,6 +124,36 @@ export const previousRoomsController = async (req, res) => {
 
         Promise.all(prevCon).then(result => res.status(200).json({ success: true, response: result }));
         
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+export const getMessages = async (req, res) => {
+    const user = req.user
+    const { room } = req.body;
+    
+    try {
+        const roomData = await Room.findById(room);
+    
+        const _r = roomData.messages.map(async (id) => await Message.findById(id).sort({ "createdAt": -1 }));
+
+        const roomMessages = await Promise.all(_r);
+
+        const _result = roomMessages.map( async (message) => {
+            const sender = await User.findById(message.sender);
+
+            return {
+                sender: sender?.username,
+                text: message.text,
+                isOpen: message.isOpen,
+                timestamp: message.createdAt
+            }
+        })
+
+        const messageData = await Promise.all(_result);
+
+        res.status(200).json({success: true,  response: messageData});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

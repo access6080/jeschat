@@ -56,14 +56,28 @@ export const logoutController = (req, res) => {
 
 export const getUserController = async (req, res) => {
     const { name } = req.params;
+    const user = req.user;
+
+    
     
     try {
-        const user = await User.findOne({ username: name });
-        if (!user) return res.status(401).json({ success: false, message: error.message });
+        const recipient = await User.findOne({ username: name });
+        if (!recipient) return res.status(401).json({ success: false, message: "Invalid Recipient" });
+
+        const myRooms = user.rooms
+        const recipientRooms = recipient.rooms
+
+        const room = myRooms.filter(_room => recipientRooms.includes(_room));
         
-        res.status(200).json({success: true, response: user});
+        res.status(200).json({
+            success: true,
+            response: {
+                user: recipient,
+                room: room[0]
+            }
+        });
     } catch (error) {
-        console.log(error.message);
+        res.send(500).json({error: error.message});
     }
 }
 

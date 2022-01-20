@@ -8,11 +8,12 @@ import {
     logoutController,
     searchController
 } from '../controllers/users.js';  
+import { protect } from '../middleware/auth.js';
 
 const router = Router();
 
 //Sign Up
-router.get('/user/:name', getUserController)
+router.get('/user/:name', protect, getUserController)
 router.post('/signup', signupController);
 router.post('/login', loginController);
 router.get('/logout', logoutController);

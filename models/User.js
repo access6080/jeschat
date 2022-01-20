@@ -16,7 +16,20 @@ const UserSchema = mongoose.Schema({
     select: false,
   },
 
+  friends: {
+    type: [mongoose.ObjectId]
+  },
+
+  friendCount: {
+    type: Number,
+    default: 0
+  },
+
   messages: {
+    type: [mongoose.ObjectId]
+  },
+
+  receivedMessages: {
     type: [mongoose.ObjectId]
   },
     
