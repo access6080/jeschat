@@ -40,10 +40,12 @@ export const createRoomController = async (req, res) => {
 
         senderDoc.rooms.push(room._id);
         senderDoc.friends.push(recipientDoc._id)
+        senderDoc.friendCount++
         senderDoc.save();
         
         recipientDoc.rooms.push(room._id);
         recipientDoc.friends.push(senderDoc._id)
+        recipientDoc.friendCount++
         recipientDoc.save();
 
         res.status(200).json({

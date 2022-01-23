@@ -147,10 +147,22 @@ const sendToken = (user, statusCode, res) => {
             httpOnly: true,
             expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3)
         })
-        .json({ sucess: true, user:user.username, token, avatar:user.avatar});
+        .json({
+            sucess: true,
+            user: user.username,
+            token,
+            avatar: user.avatar,
+            friends: user.friendCount
+        });
 };
 
 const sendAccessToken = (user, statusCode, res) => {
   const token = user.getAccessJwtToken();
-  res.status(statusCode).json({ sucess: true, user:user.username, token, avatar:user.avatar});
+    res.status(statusCode).json({
+        sucess: true,
+        user: user.username,
+        token,
+        avatar: user.avatar,
+        friends: user.friendCount
+    });
 };
