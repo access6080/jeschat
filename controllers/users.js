@@ -145,7 +145,9 @@ const sendToken = (user, statusCode, res) => {
         .status(statusCode)
         .cookie('jestok', refrshToken, {
             httpOnly: true,
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3)
+            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
+            sameSite: 'None',
+            secure: true
         })
         .json({
             sucess: true,
