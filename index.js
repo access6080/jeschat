@@ -18,7 +18,7 @@ import chatRoutes from './routes/messages.js'
 const app = express();
 app.use(cookieParser());
 app.use(cors({
-    origin: 'https://jeschat.geokoranteng.com/',
+    origin: '*',
     credentials:true,       
     optionSuccessStatus:200
 }));
